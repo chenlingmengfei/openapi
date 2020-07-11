@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qf.web.master.mapper.TokenMapper">
+    <insert id="insertUserToken" parameterType="UserToken">
+        insert into user_token values(null,#{appId},#{userId},#{accessToken},#{expireTime},#{startTime})
+    </insert>
+    <update id="updateUserToken" parameterType="UserToken">
+        update user_token
+        <set>
+            <if test="appId != null">
+                appId = #{appId},
+            </if>
+            <if test="userId != null">
+                userId = #{userId},
+            </if>
+            <if test="accessToken != null and accessToken != ''">
+                access_token = #{accessToken},
+            </if>
+            <if test="expireTime != null">
+                expireTime = #{expireTime},
+            </if>
+            <if test="startTime != null">
+                startTime = #{startTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteUserToken">
+        delete from user_token where id in
+        <foreach collection="array" separator="," close=")" open="(" item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectUserToken" resultType="UserToken">
+        select id,appId,userId,access_token accessToken,expireTime,startTime from user_token
+        <where>
+            <if test="accessToken != null and accessToken != ''">
+                access_token like concat('%',#{accessToken},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qf.web.master.mapper.RoleMapper">
+
+    <resultMap id="roleResult" type="role">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="remark" column="REMARK"/>
+        <result property="status" column="STATUS"/>
+    </resultMap>
+
+
+    <insert id="insertRole" parameterType="role">
+        insert into role values(null,#{name},#{remark},#{status})
+    </insert>
+
+    <update id="updataRole">
+        update role
+        <set>
+            <if test="name != null and name != ''">
+                NAME = #{name},
+            </if>
+            <if test="remark != null and remark != ''">
+                REMARK = #{remark},
+            </if>
+            <if test="status != null">
+                STATUS = #{status},
+            </if>
+        </set>
+        where   ID = #{id}
+    </update>
+    <delete id="deleteMenuByRoleId">
+        delete from role_menu where ROLE_ID = #{roleId}
+    </delete>
+
+
+    <insert id="insertRoleMenu">
+        insert into role_menu values
+        <foreach collection="menuIds" item="menuid" separator=",">
+            (#{roleId},#{menuid})
+        </foreach>
+    </insert>
+
+    <select id="slectRoleList" resultMap="roleResult" parameterType="role">
+        select * from role
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="status != null">
+                and STATUS = #{status}
+            </if>
+        </where>
+    </select>
+    <select id="getRoleMenuByRoleId" resultType="java.lang.Integer">
+        select MENU_ID from role_menu where ROLE_ID = #{roleId}
+    </select>
+
+
+</mapper>

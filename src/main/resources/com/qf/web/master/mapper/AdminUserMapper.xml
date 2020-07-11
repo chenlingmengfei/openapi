@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qf.web.master.mapper.AdminUserMapper">
+    <insert id="insertUser" parameterType="adminUser">
+        insert into admin_user values(null,#{password},#{email},#{realName},#{status})
+    </insert>
+
+    <delete id="deleteUserRole">
+        delete from user_role where USER_ID = #{userId}
+    </delete>
+
+    <insert id="insertUserRole">
+        insert into user_role values(#{userId},#{role})
+    </insert>
+
+
+    <update id="updateUser" parameterType="adminUser">
+        update admin_user
+        <set>
+            <if test="password != null and password !=''">
+                password = #{password},
+            </if>
+            <if test="email != null and email !=''">
+                email = #{email},
+            </if>
+            <if test="realName != null and realName != ''">
+                realName = #{realName},
+            </if>
+            <if test="status">
+                status = #{status}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteUser">
+        delete from admin_user where id in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="selectAdminUserByEmailAndPassword" resultType="adminUser">
+            select * from admin_user where email = #{email} and password = #{password}
+    </select>
+
+
+    <select id="selectUserList" resultType="adminUser" parameterType="adminUser">
+        select * from admin_user
+        <where>
+            <if test="realName != null and realName != ''">
+                or realName like concat('%',#{realName},'%')
+            </if>
+            <if test="email != null and email != ''">
+                or email like concat('%',#{email},'%')
+            </if>
+            <if test="status != null">
+                or status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectUserRoleId" resultType="java.lang.Integer">
+        select ROLE_ID from user_role where USER_ID = #{userId}
+    </select>
+
+
+</mapper>

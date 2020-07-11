@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qf.web.master.mapper.ApiSystemParamMapper">
+    <insert id="insertApiSystemparam" parameterType="ApiSystemParam">
+            insert into api_systemparam values(null,#{name},#{description},#{state})
+    </insert>
+    <update id="updateApiSystemparam" parameterType="ApiSystemParam">
+            update api_systemparam
+            <set>
+                <if test="name != null and name !=''">
+                    name = #{name},
+                </if>
+                <if test="description != null and description != ''">
+                    description = #{description},
+                </if>
+                <if test="state != null">
+                    state = #{state},
+                </if>
+            </set>
+            where id = #{id}
+    </update>
+    <delete id="deleteApiSystemparam">
+        delete from api_systemparam where id in
+        <foreach collection="array" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectApiSystemparam" resultType="ApiSystemparam" parameterType="ApiSystemParam">
+        select * from api_systemparam
+        <where>
+            <if test="name != null and name !=''">
+                or name like concat('%',#{name},'%')
+            </if>
+            <if test="state != null">
+                or state = #{state}
+            </if>
+        </where>
+    </select>
+</mapper>

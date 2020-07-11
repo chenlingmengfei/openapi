@@ -1,0 +1,281 @@
+<form onsubmit="javascript: return false;" id="searchform" class="layui-form">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label>token:</label>
+            <div class="layui-inline">
+                <input type="text" name="name" autocomplete="off" placeholder="请输入token"
+                       class="layui-input">
+            </div>
+            <button class="layui-btn" id="search" lay-submit lay-filter="userToken-table">搜索</button>
+        </div>
+    </div>
+</form>
+<script type="text/html" id="userToken-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete"><i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="userToken-userToken-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-userToken">编辑</a>
+</script>
+<table class="layui-table" lay-filter="userToken-table" id="userToken-table">
+</table>
+
+<script type="text/html" id="userToken-add-layer">
+    <form id="userToken-add-form" style="width: 80%" class="layui-form" lay-filter="userToken-add-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">应用</label>
+            <div class="layui-input-block">
+                <select name="appId" id="appId">
+
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户</label>
+            <div class="layui-input-block">
+                <select name="userId" id="userId">
+
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">开始时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="startTime" required id="startTime" lay-verify="required" placeholder="请输入开始时间"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">过期时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="expireTime" required id="expireTime" lay-verify="required" placeholder="请输入过期时间"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+    </form>
+</script>
+<script type="text/javascript" >
+
+    $(function () {
+        render();
+        search();
+    });
+
+    function search() {
+        $('#search').click(function () {
+            var str ='userTokenController/table?' + $('#searchform').serialize();
+            layui.use(['table','layer','form'],function () {
+                var table = layui.table;
+                var layer = layui.layer;
+                var form = layui.form;
+
+                form.render();
+                //手动的对表格进行渲染
+                table.render({
+                    id: "userToken-table"
+                    /*指定原始 table 容器的选择器或 DOM，方法渲染方式必填*/
+                    , elem: '#userToken-table'
+                    /*开启工具栏*/
+                    , toolbar: '#userToken-head-bar'
+                    /*请求后端，获取表格填充的数据*/
+                    , url: str //数据接口
+                    /*开启分页*/
+                    , page: {limits: [5, 10, 15, 20, 25]}
+                    /*填充表格数据*/
+                    , cols: [[ //表头
+                        {checkbox: true},
+                        {field: 'id', title: 'ID', sort: true}
+                        , {field: 'userId', title: '用户ID'}
+                        , {field: 'accessToken', title: 'Token'}
+                        , {field: 'expireTime', title: '过期时间'}
+                        , {field: 'startTime', title: '开始时间'},
+                        {field: 'right', title: "操作", toolbar: '#userToken-userToken-bar', width: 150}
+                    ]]
+                });
+            });
+        })
+    }
+
+    function render(){
+        layui.use(['table','layer','laydate','form'],function () {
+            var table = layui.table;
+            var layer = layui.layer;
+            var form = layui.form;
+            var laydate = layui.laydate;
+
+            form.render();
+            //手动的对表格进行渲染
+            table.render({
+                id:"userToken-table"
+                /*指定原始 table 容器的选择器或 DOM，方法渲染方式必填*/
+                ,elem: '#userToken-table'
+                /*开启工具栏*/
+                ,toolbar:'#userToken-head-bar'
+                /*请求后端，获取表格填充的数据*/
+                ,url: 'userTokenController/table' //数据接口
+                /*开启分页*/
+                ,page: {limits:[5, 10, 15, 20, 25]}
+                /*填充表格数据*/
+                , cols: [[ //表头
+                    {checkbox: true},
+                    {field: 'id', title: 'ID', sort: true}
+                    , {field: 'userId', title: '用户ID'}
+                    , {field: 'accessToken', title: 'Token'}
+                    , {field: 'expireTime', title: '过期时间'}
+                    , {field: 'startTime', title: '开始时间'},
+                    {field: 'right', title: "操作", toolbar: '#userToken-userToken-bar', width: 150}
+                ]]
+            });
+
+            table.on('toolbar(userToken-table)',function (obj) {
+                //console.log(obj);
+                switch (obj.event) {
+                    case 'goEdit':
+                        openEditWindow(null);
+                        break;
+                    case 'delete':
+                        var data = table.checkStatus("userToken-table").data;
+                        if(data.length > 0){
+                            layer.confirm("确定要删除吗？",function (index) {
+                                var params = "";
+                                $.each(data,function (i, obj) {
+                                    params+="&ids="+obj.id;
+                                });
+                                $.ajax({
+                                    url:"userTokenController/delete",
+                                    data:params,
+                                    method:"get",
+                                    success:function (result) {
+                                        if(result.state){
+                                            table.reload("userToken-table",{})
+                                        }else{
+                                            alert(result.message);/*提示信息*/
+                                        }
+                                        //console.log(index);
+                                        layer.close(index);/*关闭窗口*/
+                                    }
+                                })
+                            })
+                        }
+                        break;
+                }
+
+
+            });
+            table.on('tool(userToken-table)',function (obj) {
+                var data = obj.data; /*用于编辑页面的数据回显，只要json中的属性名和name中的属性名称一样即可回显*/
+                switch (obj.event){
+                    case 'edit-userToken':
+                        openEditWindow(data);
+                        break;
+                }
+            });
+
+
+            function openEditWindow(data) {
+                layer.open({
+                    type:1,
+                    content: $('#userToken-add-layer').html() ,
+                    title: data == null ? '添加' : '编辑' ,
+                    area:['500px','400px'],
+                    btn:['提交','取消'],
+                    success:function (layero,index) {
+                        $.ajax({
+                            url: 'adminUserController/all',
+                            type:'get',
+                            sync:false,
+                            dataType: 'json',
+                            success:function (_data) {
+                                if(_data.length > 0){
+                                    for(var i = 0; i < _data.length; i++){
+                                        if(data !=null && data.userId != null && data.userId == _data[i].id){
+                                            var str = "<option selected value=\""+_data[i].id+"\">"+_data[i].realName+"</option>";
+                                            $('#userId').append(str);
+                                        }else{
+                                            var str= "<option value=\""+_data[i].id+"\">"+_data[i].realName+"</option>";
+                                            $('#userId').append(str);
+                                        }
+                                    }
+                                    form.render();
+                                }
+
+                            }
+                        });
+                        $.ajax({
+                            url: 'appInfoController/all',
+                            type:'get',
+                            sync:false,
+                            dataType: 'json',
+                            success:function (_data) {
+                                if(_data.length > 0){
+                                    for(var i = 0; i < _data.length; i++){
+                                        if(data !=null && data.appId != null && data.appId == _data[i].id){
+                                            var str = "<option selected value=\""+_data[i].id+"\">"+_data[i].appName+"</option>";
+                                            $('#appId').append(str);
+                                        }else{
+                                            var str= "<option value=\""+_data[i].id+"\">"+_data[i].appName+"</option>";
+                                            $('#appId').append(str);
+                                        }
+                                    }
+                                    form.render();
+                                }
+
+                            }
+                        });
+                        form.render();
+                        laydate.render({
+                            elem:'#startTime',
+                            type:'datetime'
+                        });
+                        laydate.render({
+                            elem:'#expireTime',
+                            type:'datetime'
+                        });
+                        if(data != null){
+                            form.val('userToken-add-form',data);
+                        }
+
+                    },
+                    yes:function (index, layero) {
+                        layer.load();/*加载层*/
+                        //console.log(layero);
+                        $.ajax({
+                            url:data == null ? 'userTokenController/add' : 'userTokenController/update',
+                            type:'post',
+                            contentType:'application/json;charset=UTF-8',
+                            data:JSON.stringify({
+                                appId : $('#appId').val(),
+                                userId: $('#userId').val(),
+                                startTime : $('#startTime').val(),
+                                expireTime: $('#expireTime').val()
+                            }) ,
+                            dataType:'json',
+                            success:function (_data) {
+                                if(_data.state){ /*状态是true*/
+                                    table.reload('userToken-table',{});/*表格重载,第二个参数为可选项*/
+                                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                                }else{
+                                    alert(_data.message);
+                                }
+                                layer.closeAll("loading");/*loading为css样式*/
+                            }
+                        })
+                    }
+                });
+            };
+        });
+    };
+
+</script>
+
+
+<script>
+
+</script>

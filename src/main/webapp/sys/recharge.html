@@ -1,0 +1,290 @@
+<form onsubmit="javascript: return false;" id="searchform" class="layui-form">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label>客户ID:</label>
+            <div class="layui-inline">
+                <input type="text" name="cusId" autocomplete="off" placeholder="请输入用户ID"
+                       class="layui-input">
+            </div>
+            <label>订单ID:</label>
+            <div class="layui-inline">
+                <input type="text" name="orderId" autocomplete="off" placeholder="请输入订单ID"
+                       class="layui-input">
+            </div>
+            <label>状态</label>
+            <div class="layui-inline">
+                <select name="state">
+                    <option value="">请选择</option>
+                    <option value="0">创建</option>
+                    <option value="1">支付</option>
+                    <option value="2">取消</option>
+                </select>
+            </div>
+            <label>支付方式</label>
+            <div class="layui-inline">
+                <select name="paymenttype">
+                    <option value="">请选择</option>
+                    <option value="0">支付宝</option>
+                    <option value="1">微信</option>
+                </select>
+            </div>
+            <button class="layui-btn" id="search" lay-submit lay-filter="recharge-table">搜索</button>
+        </div>
+    </div>
+</form>
+<script type="text/html" id="recharge-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete"><i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="recharge-recharge-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-recharge">编辑</a>
+</script>
+<table class="layui-table" lay-filter="recharge-table" id="recharge-table">
+</table>
+
+<script type="text/html" id="recharge-add-layer">
+    <form id="recharge-add-form" style="width: 80%" class="layui-form" lay-filter="recharge-add-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item" >
+            <label class="layui-form-label">客户名称</label>
+            <div class="layui-input-block">
+                <select name="cusId" id="cusId" lay-filter="aihao">
+
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付金额</label>
+            <div class="layui-input-block">
+                <input type="text" name="money" required lay-verify="required" placeholder="请输入支付金额"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <select name="state">
+                    <option value="0">创建</option>
+                    <option value="1">支付</option>
+                    <option value="2">取消</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付方式</label>
+            <div class="layui-input-block">
+                <select name="paymenttype">
+                    <option value="0">支付宝</option>
+                    <option value="1">微信</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/javascript" >
+
+    $(function () {
+        render();
+        search();
+    });
+
+    function search() {
+        $('#search').click(function () {
+            var str ='rechargeController/table?' + $('#searchform').serialize();
+            layui.use(['table','layer','form'],function () {
+                var table = layui.table;
+                var layer = layui.layer;
+                var form = layui.form;
+
+                form.render();
+                //手动的对表格进行渲染
+                table.render({
+                    id: "recharge-table"
+                    /*指定原始 table 容器的选择器或 DOM，方法渲染方式必填*/
+                    , elem: '#recharge-table'
+                    /*开启工具栏*/
+                    , toolbar: '#recharge-head-bar'
+                    /*请求后端，获取表格填充的数据*/
+                    , url: str //数据接口
+                    /*开启分页*/
+                    , page: {limits: [5, 10, 15, 20, 25]}
+                    /*填充表格数据*/
+                    , cols: [[ //表头
+                        {checkbox: true},
+                        {field: 'id', title: 'ID', sort: true}
+                        , {field: 'cusId', title: '用户ID'}
+                        , {field: 'orderId', title: '订单ID'}
+                        , {field: 'createtime', title: '创建时间'}
+                        , {field: 'updatetime', title: '更新时间'}
+                        , {field: 'money', title: '支付金额'}
+                        , {
+                            field: 'state', title: '状态', templet: function (data) {
+                                return (data.state == 0) ? '<span class="layui-badge layui-bg-blue">创建</span>' : (data.state == 1) ? '<span class="layui-badge layui-bg-green">支付</span>' : '<span class="layui-badge layui-bg-red">取消</span>'
+                            }
+                        },
+                        {
+                            field: 'paymenttype', title: '支付方式', templet: function (data) {
+                                return (data.paymenttype == 0) ? '<span class="layui-badge layui-bg-blue">支付宝</span>' : '<span class="layui-badge layui-bg-green">微信</span>'
+                            }
+                        },
+                        {field: 'right', title: "操作", toolbar: '#recharge-recharge-bar', width: 150}
+                    ]]
+                });
+            });
+        })
+    }
+
+    function render(){
+        layui.use(['table','layer','form'],function () {
+            var table = layui.table;
+            var layer = layui.layer;
+            var form = layui.form;
+
+            form.render();
+            //手动的对表格进行渲染
+            table.render({
+                id:"recharge-table"
+                /*指定原始 table 容器的选择器或 DOM，方法渲染方式必填*/
+                ,elem: '#recharge-table'
+                /*开启工具栏*/
+                ,toolbar:'#recharge-head-bar'
+                /*请求后端，获取表格填充的数据*/
+                ,url: 'rechargeController/table' //数据接口
+                /*开启分页*/
+                ,page: {limits:[5, 10, 15, 20, 25]}
+                /*填充表格数据*/
+                , cols: [[ //表头
+                    {checkbox: true},
+                    {field: 'id', title: 'ID', sort: true}
+                    , {field: 'cusId', title: '客户ID'}
+                    , {field: 'orderId', title: '订单ID'}
+                    , {field: 'createtime', title: '创建时间'}
+                    , {field: 'updatetime', title: '更新时间'}
+                    , {field: 'money', title: '支付金额'}
+                    , {
+                        field: 'state', title: '状态', templet: function (data) {
+                            return (data.state == 0) ? '<span class="layui-badge layui-bg-blue">创建</span>' : (data.state == 1) ? '<span class="layui-badge layui-bg-green">支付</span>' : '<span class="layui-badge layui-bg-red">取消</span>'
+                        }
+                    },
+                    {
+                        field: 'paymenttype', title: '支付方式', templet: function (data) {
+                            return (data.paymenttype == 0) ? '<span class="layui-badge layui-bg-blue">支付宝</span>' : '<span class="layui-badge layui-bg-green">微信</span>'
+                        }
+                    },
+                    {field: 'right', title: "操作", toolbar: '#recharge-recharge-bar', width: 150}
+                ]]
+            });
+
+            table.on('toolbar(recharge-table)',function (obj) {
+                //console.log(obj);
+                switch (obj.event) {
+                    case 'goEdit':
+                        openEditWindow(null);
+                        break;
+                    case 'delete':
+                        var data = table.checkStatus("recharge-table").data;
+                        if(data.length > 0){
+                            layer.confirm("确定要删除吗？",function (index) {
+                                var params = "";
+                                $.each(data,function (i, obj) {
+                                    params+="&ids="+obj.id;
+                                })
+                                $.ajax({
+                                    url:"rechargeController/delete",
+                                    data:params,
+                                    method:"get",
+                                    success:function (result) {
+                                        if(result.state){
+                                            table.reload("recharge-table",{})
+                                        }else{
+                                            alert(result.message);/*提示信息*/
+                                        }
+                                        //console.log(index);
+                                        layer.close(index);/*关闭窗口*/
+                                    }
+                                })
+                            })
+                        }
+                        break;
+                }
+
+
+            });
+            table.on('tool(recharge-table)',function (obj) {
+                var data = obj.data; /*用于编辑页面的数据回显，只要json中的属性名和name中的属性名称一样即可回显*/
+                switch (obj.event){
+                    case 'edit-recharge':
+                        openEditWindow(data);
+                        break;
+                }
+            })
+
+            function openEditWindow(data) {
+                layer.open({
+                    type:1,
+                    content: $('#recharge-add-layer').html() ,
+                    title:data == null ? '添加' : '编辑' ,
+                    area:['500px','400px'],
+                    btn:['提交','取消'],
+                    success:function (layero,index) {
+                        form.render();
+                        $.ajax({
+                            url: 'customerController/all',
+                            type:'get',
+                            sync:false,
+                            dataType: 'json',
+                            success:function (_data) {
+                                if(_data.length > 0){
+                                    for(var i = 0; i < _data.length; i++){
+                                        if(data !=null && data.cusId != null && data.cusId == _data[i].id){
+                                            var str = "<option selected value=\""+_data[i].id+"\">"+_data[i].username+"</option>";
+                                            $('#cusId').append(str);
+                                        }else{
+                                            var str= "<option value=\""+_data[i].id+"\">"+_data[i].username+"</option>";
+                                            $('#cusId').append(str);
+                                        }
+                                    }
+                                    form.render();
+                                }
+
+                            }
+                        });
+
+                        if(data != null){
+                            form.val('recharge-add-form',data);
+                        }
+                    },
+                    yes:function (index, layero) {
+                        layer.load();/*加载层*/
+                        $.ajax({
+                            url:data == null ? 'rechargeController/add' : 'rechargeController/update',
+                            type:'post',
+                            data:$('#recharge-add-form').serialize() ,
+                            dataType:'json',
+                            success:function (_data) {
+                                if(_data.state){ /*状态是true*/
+                                    table.reload('recharge-table',{});/*表格重载,第二个参数为可选项*/
+                                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                                }else{
+                                    alert(_data.message);
+                                }
+                                layer.closeAll("loading");/*loading为css样式*/
+                            }
+                        })
+                    }
+                });
+            };
+        });
+    };
+
+</script>
+
+
+<script>
+
+</script>

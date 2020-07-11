@@ -1,0 +1,205 @@
+<script type="text/html" id="menu-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete"><i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="menu-menu-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-menu">编辑</a>
+</script>
+<table class="layui-table" lay-filter="menu-table" id="menu-table">
+</table>
+
+<script type="text/html" id="menu-add-layer">
+    <form id="menu-add-form" style="width: 80%" class="layui-form" lay-filter="menu-add-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">菜单名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入菜单名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">父目录ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="parentId" required lay-verify="required" placeholder="请输入父目录ID"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">URL</label>
+            <div class="layui-input-block">
+                <input type="text" name="url" required lay-verify="required" placeholder="请输入url"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">图标</label>
+            <div class="layui-input-block">
+                <input type="text" name="icon" required lay-verify="required" placeholder="请输入图标"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">api缩写</label>
+            <div class="layui-input-block">
+                <input type="text" name="perms" required lay-verify="required" placeholder="请输入api"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-input-block">
+                <select name="type">
+                    <option value="0">目录</option>
+                    <option value="1">菜单</option>
+                    <option value="2">按钮</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序</label>
+            <div class="layui-input-block">
+                <input type="text" name="sort" required lay-verify="required" placeholder="请输入排序"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/javascript" >
+
+    $(function () {
+        render();
+    });
+
+    function render(){
+        layui.use(['table','layer','form'],function () {
+            var table = layui.table;
+            var layer = layui.layer;
+            var form = layui.form;
+
+            form.render();
+            //手动的对表格进行渲染
+            table.render({
+                id:"menu-table"
+                /*指定原始 table 容器的选择器或 DOM，方法渲染方式必填*/
+                ,elem: '#menu-table'
+                /*开启工具栏*/
+                ,toolbar:'#menu-head-bar'
+                /*请求后端，获取表格填充的数据*/
+                ,url: 'menuController/menulist' //数据接口
+                /*开启分页*/
+                ,page: false
+                , cellMinWidth: 80
+                /*填充表格数据*/
+                , cols: [[ //表头
+                    {checkbox: true},
+                    {
+                        field: 'name', title: '菜单名称', templet: function (d) {
+                            var left = 40 * d.type;
+                            return '<span style="margin-left:' + left + 'px">' + d.name + '</span>';
+                        }
+                    },
+                    , {field: 'url', title: '菜单地址'}
+                    , {
+                        field: 'type', title: '状态', templet: function (data) {
+                            return (data.type == 0) ? '<span class="layui-badge layui-bg-orange">目录</span>' : (data.type == 1) ? '<span class="layui-badge layui-bg-green">菜单</span>' : '<span class="layui-badge layui-bg-blue">按钮</span>'
+                        }
+                    },
+                    {field: 'sort', title: '排序'}
+                    ,{field: 'right', title: "操作", toolbar: '#menu-menu-bar', width: 150}
+                ]]
+            });
+
+            table.on('toolbar(menu-table)',function (obj) {
+                //console.log(obj);
+                switch (obj.event) {
+                    case 'goEdit':
+                        openEditWindow(null);
+                        break;
+                    case 'delete':
+                        var data = table.checkStatus("menu-table").data;
+                        if(data.length > 0){
+                            layer.confirm("确定要删除吗？",function (index) {
+                                var params = "";
+                                $.each(data,function (i, obj) {
+                                    params+="&ids="+obj.id;
+                                });
+                                $.ajax({
+                                    url:"menuController/delete",
+                                    data:params,
+                                    method:"get",
+                                    success:function (result) {
+                                        if(result.state){
+                                            table.reload("menu-table",{})
+                                        }else{
+                                            alert(result.message);/*提示信息*/
+                                        }
+                                        //console.log(index);
+                                        layer.close(index);/*关闭窗口*/
+                                    }
+                                })
+                            })
+                        }
+                        break;
+                }
+
+
+            });
+            table.on('tool(menu-table)',function (obj) {
+                var data = obj.data; /*用于编辑页面的数据回显，只要json中的属性名和name中的属性名称一样即可回显*/
+                switch (obj.event){
+                    case 'edit-menu':
+                        openEditWindow(data);
+                        break;
+                }
+            });
+
+            function openEditWindow(data) {
+                layer.open({
+                    type:1,
+                    content: $('#menu-add-layer').html() ,
+                    title:data == null ? '添加' : '编辑' ,
+                    area:['500px','400px'],
+                    btn:['提交','取消'],
+                    success:function (layero,index) {
+                        form.render();
+                        if(data != null){
+                            form.val('menu-add-form',data);
+                        }
+                    },
+                    yes:function (index, layero) {
+                        layer.load();/*加载层*/
+                        $.ajax({
+                            url:data == null ? 'menuController/add' : 'menuController/update',
+                            type:'post',
+                            data:$('#menu-add-form').serialize() ,
+                            dataType:'json',
+                            success:function (_data) {
+                                if(_data.state){ /*状态是true*/
+                                    table.reload('menu-table',{});/*表格重载,第二个参数为可选项*/
+                                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                                }else{
+                                    alert(_data.message);
+                                }
+                                layer.closeAll("loading");/*loading为css样式*/
+                            }
+                        })
+                    }
+                });
+            };
+        });
+    };
+
+</script>
+
+

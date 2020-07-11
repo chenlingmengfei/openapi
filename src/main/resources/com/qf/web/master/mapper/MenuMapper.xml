@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qf.web.master.mapper.MenuMapper">
+
+    <resultMap id="menuResult" type="menu">
+        <id property="id" column="id"/>
+        <result property="name" column="NAME"/>
+        <result property="parentId" column="PARENT_ID"/>
+        <result property="url" column="URL"/>
+        <result property="icon" column="ICON"/>
+        <result property="perms" column="PERMS"/>
+        <result property="type" column="TYPE"/>
+        <result property="sort" column="SORT"/>
+    </resultMap>
+
+    <insert id="insertMenu" parameterType="menu">
+        insert into menu values(null,#{name},
+        <if test="parentId != null">
+            #{parentId},
+        </if>
+        <if test="parentId == null">
+            null,
+        </if>
+        <if test="url != null and url != ''">
+            #{url},
+        </if>
+        <if test="url == null or url == ''">
+            null,
+        </if>
+        <if test="icon != null and icon !=''">
+            #{icon},
+        </if>
+        <if test="icon == null or icon == ''">
+            null,
+        </if>
+        <if test="perms != null and perms !=''">
+            #{perms},
+        </if>
+        <if test="perms == null or perms == ''">
+            null,
+        </if>
+        #{type},#{sort})
+    </insert>
+    <update id="updateMenu" parameterType="menu">
+        update menu
+        <set>
+            <if test="name != null and name!=''">
+                NAME = #{name},
+            </if>
+            <if test="parentId != null">
+                PARENT_ID = #{parentId},
+            </if>
+            <if test="parentId == null">
+                PARENT_ID = null,
+            </if>
+            <if test="url != null and url!=''">
+                URL = #{url},
+            </if>
+            <if test="icon != null and icon!=''">
+                ICON = #{icon},
+            </if>
+            <if test="icon == null or icon ==''">
+                ICON = null,
+            </if>
+            <if test="perms != null and perms!=''">
+                PERMS = #{perms},
+            </if>
+            <if test="perms == null or perms == ''">
+                PERMS = null,
+            </if>
+            <if test="type != null and type!=''">
+                TYPE = #{type},
+            </if>
+            <if test="sort != null">
+                SORT = #{sort},
+            </if>
+        </set>
+        where ID = #{id}
+    </update>
+    <delete id="deleteMenuList">
+        delete from menu where ID in
+        <foreach collection="array" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getMenuList" resultMap="menuResult">
+        select m.* from menu m inner join role_menu rm
+        on m.ID = rm.MENU_ID inner join user_role u
+        on u.ROLE_ID = rm.ROLE_ID
+        where u.USER_ID = #{id} order by m.SORT,m.URL
+    </select>
+    <select id="getAllMenuList" resultMap="menuResult">
+        select * from menu
+    </select>
+</mapper>
